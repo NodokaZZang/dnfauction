@@ -1,0 +1,44 @@
+@font-face {
+    font-family: "MaruBuri-Bold";
+    src: url("MaruBuri-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "MaruBuri-ExtraLight";
+    src: url("MaruBuri-ExtraLight.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "MaruBuri-Light";
+    src: url("MaruBuri-Light.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "MaruBuri-Regular";
+    src: url("MaruBuri-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "MaruBuri-SemiBold";
+    src: url("MaruBuri-SemiBold.ttf") format("truetype");
+}
+
+.MFontBold {
+    font-family: 'MaruBuri-Bold', serif;
+}
+
+.MFontExtraLight {
+    font-family: 'MaruBuri-ExtraLight', serif;
+}
+
+.MFontLigth {
+    font-family: 'MaruBuri-Light', serif;
+}
+
+.MFontRegular {
+    font-family: 'MaruBuri-Regular', serif;
+}
+
+.MFontSemiBold {
+    font-family: 'MaruBuri-SemiBold', serif;
+}

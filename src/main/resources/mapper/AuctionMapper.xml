@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dnf.module.auction.repository.AuctionRepository">
+
+    <insert id="auctionDataInsert" parameterType="dnf.module.auction.dto.AuctionData">
+        INSERT INTO auction_data (soldDate, itemId, itemName, unitPrice, unitPriceL) VALUES (#{soldDate},#{itemId},#{itemName},${unitPrice}, ${unitPriceL})
+            ON DUPLICATE KEY
+        UPDATE unitPrice = ${unitPrice}, unitPriceL = ${unitPriceL};
+    </insert>
+
+    <select id="auctionDataSelectTop10" parameterType="String" resultType="dnf.module.auction.dto.AuctionData">
+        select soldDate, itemId, itemName, unitPrice, unitPriceL from auction_data where itemId = #{itemId} order by soldDate desc LIMIT 30;
+    </select>
+    
+    <select id="auctionItemNameList" parameterType="hashmap" resultType="String">
+        select DISTINCT itemName from auction_data where itemName like '%${searchText}%'
+    </select>
+</mapper>

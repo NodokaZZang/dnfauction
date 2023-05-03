@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dnf.module.auction.repository.AuctionItemRepository">
+
+    <insert id="auctionItemInsert" parameterType="dnf.module.auction.dto.AuctionItemData">
+        set @searchCount = IFNULL((select searchCnt from auction_item_data where itemId = #{itemId} and regDt = #{regDt}),0) + 1;
+
+        INSERT INTO auction_item_data (itemName, itemId, regDt, searchCnt) VALUES (#{itemName},#{itemId},#{regDt},@searchCount)
+            ON DUPLICATE KEY
+        UPDATE searchCnt = @searchCount;
+    </insert>
+    
+    <select id="auctionSearch" resultType="hashmap">
+        select regDt, ItemId as itemId, itemName, searchCnt  from auction_item_data where regDt = date_format(NOW(), '%Y-%m-%d')  order by searchCnt desc LIMIT 10;
+    </select>
+</mapper>
