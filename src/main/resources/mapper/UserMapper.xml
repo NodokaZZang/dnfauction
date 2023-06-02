@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dnf.module.auction.repository.UserRepository">
+
+    <select id="getUserInfo" parameterType="String" resultType="dnf.module.auction.dto.UserInfo">
+        select
+              userId
+             ,pw
+             ,roles
+             ,userProfile
+        from
+            userInfo
+        where userId = #{insertedId}
+    </select>
+
+    <insert id="saveAuthKey" parameterType="hashmap">
+        insert into authData (authKey, authNo) values (#{authKey}, #{authNo});
+    </insert>
+
+    <select id="findAuthCode" parameterType="hashmap" resultType="hashmap">
+        select
+            authKey
+             ,authNo
+        from
+            authData
+        where authKey = #{uuid}
+    </select>
+
+    <insert id="saveUser" parameterType="hashmap">
+        insert into userInfo (userId, pw, roles,userProfile) values (#{useremail}, #{userPw}, 'USER', '/img/gunner.jpg');
+    </insert>
+
+    <insert id="profileChange" parameterType="dnf.module.auction.dto.UserProfile">
+        UPDATE  userInfo SET
+            userProfile = #{profileImgFileName}
+        where userId = #{userId};
+    </insert>
+
+    <select id="findUserByUserId" parameterType="String" resultType="hashmap">
+        select
+            userId
+             ,pw
+             ,roles
+             ,userProfile
+        from
+            userInfo
+        where userId = #{userId}
+    </select>
+</mapper>

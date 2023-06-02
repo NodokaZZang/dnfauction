@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dnf.module.auction.repository.BoardRepository">
+
+    <insert id="register" parameterType="dnf.module.auction.dto.BoardData">
+        insert into board (title, content, view, vote, reg_by, reg_dt) values (#{title}, #{content}, 0, 0, #{regBy}, NOW());
+    </insert>
+
+    <select id="boardList" resultType="hashmap" parameterType="hashmap">
+        select
+            sq as sq,
+            title as title,
+            content as content,
+            view as view,
+            vote as vote,
+            reg_by as regBy,
+            DATE_FORMAT(reg_dt, '%Y-%m-%d') as regDt
+        from board order by  sq desc LIMIT #{offset}, 10;
+    </select>
+
+    <select id="boardListCount" resultType="Integer">
+        select count(*) from board;
+    </select>
+
+    <select id="findBySq" resultType="hashmap" parameterType="Integer">
+        select
+            board.sq as sq,
+            board.title as title,
+            board.content as content,
+            board.view as view,
+            board.vote as vote,
+            board.reg_by as regBy,
+            userinfo.userProfile as regByProfile,
+            DATE_FORMAT(reg_dt, '%Y-%m-%d') as regDt
+        from board left outer join userinfo on board.reg_by = userinfo.userId where sq = ${sq};
+    </select>
+
+    <update id="updateViewCount" parameterType="Integer">
+        update board set
+            view = board.view+1
+        where sq = ${sq}
+    </update>
+
+    <select id="voteAble" parameterType="hashmap" resultType="hashmap">
+        select userId, boardSq from boardVote where boardSq = #{sq} and userId = #{userId};
+        insert into boardVote (userId, boardSq) values (#{userId}, #{sq} );
+    </select>
+
+    <select id="vote" parameterType="Integer" resultType="hashmap">
+        update board set
+            vote = board.vote + 1
+        where sq = ${sq};
+
+        select vote as vote from board where sq = ${sq};
+    </select>
+
+    <update id="modify" parameterType="hashmap">
+        update board set
+            title = #{title},
+            content = #{content}
+        where sq = ${sq};
+    </update>
+    
+    <delete id="deleteBoard" parameterType="hashmap">
+        delete from board where sq = ${sq};
+    </delete>
+
+    <insert id="commentRegister" parameterType="hashmap">
+        insert into comment (content, regBy, boardSq, commentParent) values (#{content}, #{regBy}, #{boardSq}, 0);
+    </insert>
+
+    <select id="commentList" parameterType="hashmap" resultType="dnf.module.auction.dto.CommentData">
+        select
+            comment.sq,
+            comment.regBy,
+            comment.content,
+            comment.boardSq,
+            comment.commentParent,
+            userinfo.userProfile,
+            comment.deleteYn
+        from comment left outer join userinfo on comment.regBy = userinfo.userId
+        where boardSq = ${sq}
+        order by commentParent;
+    </select>
+
+    <insert id="ccommentRegister" parameterType="hashmap">
+        insert into comment (content, regBy, boardSq, commentParent) values (#{content}, #{regBy}, #{boardSq}, #{parentSq});
+    </insert>
+
+    <delete id="deleteComment" parameterType="hashmap">
+        update comment set deleteYn = 'Y' where sq = ${sq}
+    </delete>
+
+    <delete id="ModifyCComment" parameterType="hashmap">
+        update comment set content = #{content} where sq = ${commentSq}
+    </delete>
+
+    <select id="mylistView" resultType="hashmap" parameterType="hashmap">
+        select
+            sq as sq,
+            title as title,
+            content as content,
+            view as view,
+            vote as vote,
+            reg_by as regBy,
+            DATE_FORMAT(reg_dt, '%Y-%m-%d') as regDt
+        from board where reg_by = #{userId} order by  sq desc LIMIT #{offset}, 10;
+    </select>
+
+    <select id="mylistViewCount" parameterType="hashmap" resultType="Integer">
+        select count(*) from board where reg_by = #{userId};
+    </select>
+
+    <select id="mylistViewAll" parameterType="String" resultType="hashmap">
+        select
+            sq as sq,
+            title as title,
+            content as content,
+            view as view,
+            vote as vote,
+            reg_by as regBy,
+            DATE_FORMAT(reg_dt, '%Y-%m-%d') as regDt
+        from board where reg_by = #{userId} order by sq;
+    </select>
+</mapper>

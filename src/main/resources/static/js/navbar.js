@@ -9,9 +9,10 @@ const isMobile = () => {
     return isCheck;
 }
 
-const screenList = ["dynamicSearch", "auctionSearch", "auctionItemSearch"];
+const screenList = ["dynamicSearch", "auctionSearch"
+    , "auctionItemSearch", "auctionBoard", "auctionUserInfo", "auctionBoardRegister", "auctionBoardDetail", "auctionBoardModify"];
 
-function NavSelect(id) {
+async function NavSelect(id) {
     for (var i = 0; i < $(".custom-nav > a").length; i++) {
         const navItem = $($(".custom-nav > a")[i]);
         navItem.removeClass("active");
@@ -24,6 +25,27 @@ function NavSelect(id) {
     }
 
     $("#" + screenList[screenIndex]).show();
+
+    if (screenList[screenIndex] === "auctionUserInfo")
+    {
+        ListViewMyBoard(0);
+        // 개인정보 탭
+        const res = await GetUserInfo();
+
+        if (res.result === true)
+        {
+            $("#userProfileImg").attr("src", res.data.userProfile);
+            $("#username").text(res.data.username);
+        }
+    }
+    else if (screenList[screenIndex] === "auctionBoard")
+    {
+        ListViewBoard(0);
+    }
+    else if (screenList[screenIndex] === "auctionBoardRegister")
+    {
+
+    }
 
     SearchAuctionSearch();
 

@@ -18,9 +18,14 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="/js/common.js"></script>
     <script src="/js/navbar.js"></script>
     <script src="/js/maskLayer.js"></script>
     <script src="/js/search.js"></script>
+    <script src="/js/userInfo.js"></script>
+    <script src="/js/board.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
     <style>
         .bd-placeholder-img {
             font-size: 1.125rem;
@@ -77,6 +82,62 @@
             });
 
             SearchAuctionSearch();
+
+            $('#boardContent').summernote({
+                width: '100%',
+                tabsize: 2,
+                resize: false,
+                height: 600,                 // 에디터 높이
+                minHeight: null,             // 최소 높이
+                maxHeight: null,             // 최대 높이
+                focus: true,                  // 에디터 로딩후 포커스를 맞출지 여부
+                lang: "ko-KR",					// 한글 설정
+                placeholder: '상품 상세를 입력하세요',	//placeholder 설정
+                toolbar: [
+                    // [groupName, [list of button]]
+                    ['fontname', ['fontname']],
+                    ['fontsize', ['fontsize']],
+                    ['style', ['bold', 'italic', 'underline','strikethrough', 'clear']],
+                    ['color', ['forecolor','color']],
+                    ['table', ['table']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['height', ['height']],
+                    ['insert',['picture','link','video']],
+                    ['view', ['fullscreen', 'help']]
+                ],
+                fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New','맑은 고딕','궁서','굴림체','굴림','돋움체','바탕체'],
+                fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
+                callbacks: {
+                    onImageUpload : function(files, editor, welEditable){
+                        // 파일 업로드(다중업로드를 위해 반복문 사용)
+                        for (var i = files.length - 1; i >= 0; i--) {
+                            uploadSummernoteImageFile(files[i],
+                                this);
+                        }
+                    }
+                },
+                disableResizeEditor: true
+            });
+
+            function uploadSummernoteImageFile(file, el) {
+                var data = new FormData();
+                data.append("imgFile",file);
+                $.ajax({
+                    url: '/board/summernoteImg',
+                    type: "POST",
+                    enctype: 'multipart/form-data',
+                    data: data,
+                    cache: false,
+                    contentType : false,
+                    processData : false,
+                    success : function(data) {
+                        $(el).summernote('editor.insertImage',data.url);
+                    },
+                    error : function(e) {
+                        console.log(e);
+                    }
+                });
+            }
         });
     </script>
 </head>
@@ -128,7 +189,6 @@
         </div>
     </div>
 </header>
-
 <div class="container-fluid">
     <div class="row">
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
@@ -156,10 +216,33 @@
                             경매장 조회
                         </a>
                     </li>
+                    <li class="nav-item custom-nav">
+                        <a id="moveBoard" class="nav-link MFontSemiBold" data-screen="3" aria-current="page" onclick="NavSelect(this)" href="#">
+                            <span data-feather="home"></span>
+                            게시판
+                        </a>
+                    </li>
+                    <li class="nav-item custom-nav">
+                        <a class="nav-link MFontSemiBold" data-screen="4" aria-current="page" onclick="NavSelect(this)" href="#">
+                            <span data-feather="home"></span>
+                            내정보
+                        </a>
+                    </li>
+                    <li class="nav-item custom-nav" style="display: none">
+                        <a id="goBoardDetail" class="nav-link MFontSemiBold" data-screen="6" aria-current="page" onclick="NavSelect(this)" href="#">
+                            <span data-feather="home"></span>
+                            게시물 상세
+                        </a>
+                    </li>
+                    <li class="nav-item custom-nav" style="display: none">
+                        <a id="goBoardDetailModify" class="nav-link MFontSemiBold" data-screen="7" aria-current="page" onclick="NavSelect(this)" href="#">
+                            <span data-feather="home"></span>
+                            게시물 수정
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
-
         <main id="dynamicSearch" class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2 MFontRegular">금일 검색 순위 Top 10</h1>
@@ -213,7 +296,6 @@
                         <li><a class="dropdown-item" onclick="VAuctionDataListDateDESC()">내림차순 거래일</a></li>
                     </ul>
                 </div>
-
             </div>
             <div class="table-responsive">
                 <table class="table table-dark table-hover MFontLigth" style="text-align: center">
@@ -278,6 +360,235 @@
 
                     </tbody>
                 </table>
+            </div>
+        </main>
+        <main id="auctionBoard" class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="display: none">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 MFontRegular">게시판</h1>
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0 MFontLigth" style="padding: 10px;">
+                <button class="btn-primary btn" id="goRegisterBoard" data-screen="5" aria-current="page" onclick="NavSelect(this)">글 작성</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover MFontLigth" style="text-align: center">
+                    <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">조회수</th>
+                        <th scope="col">추천</th>
+                    </tr>
+                    </thead>
+                    <tbody id="auctionBoardTable">
+
+                    </tbody>
+                </table>
+                <div style="float:right; padding:10px;" id="boardPage">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+        <main id="auctionBoardRegister" class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="display: none">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 MFontRegular">게시글 등록</h1>
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0 MFontLigth" style="padding: 10px;">
+                <button class="btn-primary btn" onclick="RegisterBoard()">작성완료</button>
+            </div>
+            <div style="padding: 5px;">
+                <input id="boardTitle" class="form-control" type="text" placeholder="게시글 제목">
+            </div>
+            <div class="table-responsive" style="padding: 5px;">
+                <textarea  id="boardContent"></textarea>
+            </div>
+        </main>
+        <main id="auctionBoardModify" class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="display: none">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 MFontRegular">게시글 수정</h1>
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0 MFontLigth" style="padding: 10px;">
+                <button class="btn-primary btn" onclick="ModifyBoard()">작성완료</button>
+            </div>
+            <div style="padding: 5px;">
+                <input id="boardTitleModify" class="form-control" type="text" placeholder="게시글 제목">
+            </div>
+            <div class="table-responsive" style="padding: 5px;">
+                <textarea  id="boardContentModify"></textarea>
+            </div>
+            <input type="hidden" id="boardmodifySq">
+        </main>
+        <main id="auctionBoardDetail" class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="display: none">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 MFontRegular" id="boardDetailTitle"></h1>
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0 MFontLigth" style="padding: 10px;" id="boardDetailToolBar">
+                <button class="btn-primary btn" onclick="ModifyBoardPage()" style="margin-right: 10px;">수정</button>
+                <button class="btn-danger btn" onclick="DeleteBoard()">삭제</button>
+            </div>
+            <div class="table-responsive" style="padding: 5px;">
+                <div id="boardCanvas" style="width: 100%;height: 100%;border-radius: 20px;background: #f5f3f3;  min-height: 500px;padding: 20px">
+
+                </div>
+            </div>
+            <input type="hidden" id="boardDetailSq">
+            <div style="padding: 10px; text-align: center">
+                <button class="btn-success btn" onclick="BoardVote()">추천 <span id="boardDetailVote">0</span></button>
+            </div>
+            <div style="display: flex; padding: 10px; margin-bottom: 10px;">
+                <div class="profileBox">
+                    <img src="/img/gunner.jpg" id="regByProfile" class="profile">
+                </div>
+                <div style="padding: 10px;">
+                    <p class="MFontBold" style="font-weight: bold;font-size: 17px;" id="regBy"></p>
+                    <p class="MFontBold" style="font-weight: bold;font-size: 13px;" id="regDt"></p>
+                    <p class="MFontBold" style="font-weight: bold;font-size: 13px;" id="boardViewCount"></p>
+                </div>
+            </div>
+
+            <section class="mb-5">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <!-- Comment form-->
+                        <form class="mb-4" style="display: flex">
+                            <textarea class="form-control" id="commentInput" rows="3" placeholder="Join the discussion and leave a comment!"></textarea>
+                            <button class="btn btn-primary" onclick="RegisterComment()">작성</button>
+                        </form>
+                        <!-- Comment with nested comments-->
+                        <div id="commentRegion">
+                            <div class="d-flex mb-4">
+                                <!-- Parent comment-->
+                                <div class="flex-shrink-0">
+                                    <img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="...">
+                                </div>
+                                <div class="ms-3">
+                                    <div class="fw-bold">Commenter Name <span class="commentAction">답글</span> <span class="commentAction">수정</span> <span class="commentAction">삭제</span></div>
+                                    <span>If you're going to lead a space frontier, it has to be government; it'll never be private enterprise. Because the space frontier is dangerous, and it's expensive, and it has unquantified risks.</span>
+                                    <div>
+                                        <form class="mb-4" style="display: flex">
+                                            <textarea class="form-control" rows="3" placeholder="Join the discussion and leave a comment!"></textarea>
+                                            <button class="btn btn-primary">작성</button>
+                                        </form>
+                                    </div>
+                                    <!-- Child comment 1-->
+                                    <div class="d-flex mt-4">
+                                        <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..."></div>
+                                        <div class="ms-3">
+                                            <div class="fw-bold">Commenter Name  <span class="commentAction">답글</span> <span class="commentAction">수정</span> <span class="commentAction">삭제</span></div>
+                                            And under those conditions, you cannot establish a capital-market evaluation of that enterprise. You can't get investors.
+                                            <div>
+                                                <form class="mb-4" style="display: flex">
+                                                    <textarea class="form-control" rows="3" placeholder="Join the discussion and leave a comment!"></textarea>
+                                                    <button class="btn btn-primary">작성</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Child comment 2-->
+                                    <div class="d-flex mt-4">
+                                        <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..."></div>
+                                        <div class="ms-3">
+                                            <div class="fw-bold">Commenter Name  <span class="commentAction">답글</span> <span class="commentAction">수정</span> <span class="commentAction">삭제</span></div>
+                                            When you put money directly to a problem, it makes a good headline.
+                                            <div>
+                                                <form class="mb-4" style="display: flex">
+                                                    <textarea class="form-control" rows="3" placeholder="Join the discussion and leave a comment!"></textarea>
+                                                    <button class="btn btn-primary">작성</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Single comment-->
+                            <div class="d-flex">
+                                <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..."></div>
+                                <div class="ms-3">
+                                    <div class="fw-bold">Commenter Name  <span class="commentAction">답글</span> <span class="commentAction">수정</span> <span class="commentAction">삭제</span></div>
+                                    When I look at the universe and all the ways the universe wants to kill us, I find it hard to reconcile that with statements of beneficence.
+                                    <div>
+                                        <form class="mb-4" style="display: flex">
+                                            <textarea class="form-control" rows="3" placeholder="Join the discussion and leave a comment!"></textarea>
+                                            <button class="btn btn-primary">작성</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+        </main>
+        <main id="auctionUserInfo" class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="display: none">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 MFontRegular">내정보</h1>
+            </div>
+            <div class="card" style="padding: 10px;">
+                <div class="profileBox" style="margin: 0 auto; cursor: pointer;" onclick="profileClick()">
+                    <img src="" id="userProfileImg" class="profile">
+                </div>
+                <div class="card-body" style="text-align: center">
+                    <h5 class="card-title MFontBold" id="username">사용자이름</h5>
+                </div>
+            </div>
+            <input id="profileInput" type="file" style="display: none" onchange="profileChange()">
+            <div class="btn-toolbar mb-2 mb-md-0 MFontLigth" style="padding: 10px;">
+                <button class="btn-success btn" onclick="ExcelDownload()">엑셀 다운로드</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover MFontLigth" style="text-align: center">
+                    <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">조회수</th>
+                        <th scope="col">추천</th>
+                    </tr>
+                    </thead>
+                    <tbody id="auctionMyInfoBoard">
+
+                    </tbody>
+                </table>
+                <div style="float:right; padding:10px;" id="auctionMyInfoBoardPage">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </main>
     </div>
