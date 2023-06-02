@@ -35,7 +35,7 @@ public class UserService {
 
             int authNo = (int)(Math.random() * (99999 - 10000 + 1)) + 10000;
             String context = "인증번호 보내드립니다 [ " + authNo + " ] ";
-            jmailService.SendEmail(context,"블랙마켓 인증번호 보내드립니다",userEmail);
+            jmailService.SendEmail(context,"던파옥션 인증번호 보내드립니다",userEmail);
 
             String AuthKey = UUID.randomUUID().toString();
 
