@@ -10,7 +10,7 @@ import java.util.Properties;
 @Service
 public class JMailService {
     private String sendEmail = "devjg7797@gmail.com";
-    private String sendPw = "epwbryhuqpidawwd";
+    private String sendPw = "앱비밀번호";
     private String smtp_host = "smtp.gmail.com";
     private int smtp_port = 465;  // TLS : 587, SSL : 465
 
